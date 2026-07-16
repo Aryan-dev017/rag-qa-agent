@@ -1,0 +1,6 @@
+{
+  "name": "RAG Q&A Agent",
+  "description": "Ragent V2: A premium, AI-native grounding workspace that organizes resources into partitioned Knowledge Bases (General, Marketing, Legal, Engineering), stores conversations, streams answers, and provides vector diagnostics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
