@@ -1,164 +1,227 @@
-# RAG Q&A Agent – Deployment Incident Report
+# RAGent.ai
 
-**Project:** RAG Q&A Agent
-**Frontend:** React + Vite
-**Backend:** Express + TypeScript
-**LLM:** Gemini 3.5 Flash
-**Embedding Model:** Gemini Embedding 2 Preview
-**Hosting:** Railway (Backend) + Vercel (Frontend)
+An AI-powered Retrieval-Augmented Generation (RAG) platform that allows users to upload documents, create searchable knowledge bases, and chat with their data using Google's Gemini models.
+
+RAGent.ai combines document ingestion, semantic search, vector embeddings, and grounded AI responses into a clean, production-ready web application.
 
 ---
 
-# Executive Summary
+## Features
 
-The application initially failed after deployment due to several interconnected issues involving deployment architecture, networking, DNS propagation, and frontend-backend communication.
-
-Although the backend had been built correctly, the deployment process made it appear as if the server itself was broken. Through systematic debugging, each layer of the deployment pipeline was verified until the actual issue was isolated.
-
-The final production system is now fully operational with successful document ingestion, vector indexing, retrieval, and grounded answer generation.
+- AI-powered document question answering
+- Retrieval-Augmented Generation (RAG)
+- Drag & Drop document upload
+- Automatic document parsing
+- Intelligent text chunking
+- Gemini Embedding API integration
+- Hybrid vector search
+- Context-aware answer generation
+- Multiple AI Personas
+- Knowledge Workspace management
+- Chunk inspection
+- Developer metrics dashboard
+- Source citations
+- Production deployment on Railway
 
 ---
 
-# Architecture
+## Tech Stack
 
+### Frontend
+
+- React 19
+- TypeScript
+- Vite
+- Tailwind CSS
+- Framer Motion
+- Lucide Icons
+
+### Backend
+
+- Node.js
+- Express
+- TypeScript
+
+### AI
+
+- Gemini 3.5 Flash
+- Gemini Embedding 2 Preview
+
+### Deployment
+
+- Railway
+- Vercel
+
+---
+
+## Architecture
+
+```text
+                    User
+                      │
+                      ▼
+              React Frontend
+                      │
+                      ▼
+              Express API Server
+                      │
+      ┌───────────────┴────────────────┐
+      │                                │
+      ▼                                ▼
+ Upload Pipeline                  Chat Pipeline
+      │                                │
+      ▼                                ▼
+ Document Parser                  Query Processing
+      │                                │
+      ▼                                ▼
+ Intelligent Chunking          Query Embedding
+      │                                │
+      ▼                                ▼
+ Gemini Embeddings          Vector Similarity Search
+      │                                │
+      ▼                                ▼
+  Vector Store               Retrieved Context
+      │                                │
+      └───────────────┬────────────────┘
+                      ▼
+              Gemini 3.5 Flash
+                      │
+                      ▼
+             Grounded AI Response
 ```
-React (Vercel)
-        │
-        ▼
-Railway Backend
-        │
-        ▼
-Upload Pipeline
-        │
-        ▼
-Parser
-        │
-        ▼
-Chunker
-        │
-        ▼
-Gemini Embeddings
-        │
-        ▼
-Vector Store
-        │
-        ▼
-Retriever
-        │
-        ▼
+
+---
+
+# Project Structure
+
+```text
+.
+├── server
+│   ├── routes
+│   ├── services
+│   ├── pipeline
+│   ├── embeddings
+│   ├── retriever
+│   ├── vectorstore
+│   ├── parser
+│   └── server.ts
+│
+├── src
+│   ├── components
+│   ├── pages
+│   ├── hooks
+│   ├── lib
+│   └── App.tsx
+│
+├── dist
+├── public
+└── package.json
+```
+
+---
+
+# RAG Pipeline
+
+## 1. Upload
+
+Documents are uploaded into a workspace.
+
+Supported formats include
+
+- TXT
+- Markdown
+- CSV
+
+---
+
+## 2. Parsing
+
+The document is converted into clean text while preserving semantic structure.
+
+---
+
+## 3. Chunking
+
+Large documents are divided into overlapping chunks.
+
+Example configuration
+
+```text
+Chunk Size : 600 characters
+Overlap    : 120 characters
+```
+
+---
+
+## 4. Embedding Generation
+
+Each chunk is converted into a semantic vector using
+
+- Gemini Embedding 2 Preview
+
+---
+
+## 5. Vector Storage
+
+Embeddings are stored inside the vector database for semantic retrieval.
+
+---
+
+## 6. Retrieval
+
+When a user asks a question
+
+- the query is embedded
+- similarity search retrieves relevant chunks
+- context is ranked
+
+---
+
+## 7. Generation
+
+Retrieved context is passed to
+
 Gemini 3.5 Flash
-        │
-        ▼
-Grounded Response
-```
+
+which generates grounded responses with citations.
 
 ---
 
-# Problems Encountered
+# Personas
+
+RAGent supports multiple response modes.
+
+- Balanced Assistant
+- Strict Fact QA
+- Creative Teacher
+- Technical Analyst
+
+Each persona modifies prompting behavior without changing the retrieval pipeline.
 
 ---
 
-## 1. Production Build Verification
+# Workspace System
 
-### Symptoms
+Each workspace maintains its own
 
-Uncertainty whether the production build contained the backend server.
+- uploaded documents
+- vectors
+- context
+- chat history
 
-### Investigation
-
-Verified the build process:
-
-```
-npm run build
-```
-
-Output:
-
-```
-dist/
-    assets/
-    index.html
-    server.cjs
-    server.cjs.map
-```
-
-### Result
-
-Confirmed that:
-
-* frontend compiled correctly
-* backend bundled correctly
-* build pipeline was functioning normally
+allowing multiple independent knowledge bases.
 
 ---
 
-## 2. Backend Startup Validation
+# API
 
-### Symptoms
+## Health
 
-No confirmation whether Railway actually launched the server.
-
-### Investigation
-
-Executed:
-
-```
-node dist/server.cjs
+```http
+GET /api/health
 ```
 
-Observed logs:
-
-```
-Boot
-Upload Pipeline
-Chunk Creation
-Embedding Generation
-Vector Store
-Successfully loaded document
-```
-
-### Result
-
-Backend booted successfully.
-
----
-
-## 3. Address Already In Use (EADDRINUSE)
-
-### Error
-
-```
-Error:
-listen EADDRINUSE
-address already in use
-0.0.0.0:8080
-```
-
-### Cause
-
-A Railway instance was already running.
-
-Launching another server manually attempted to bind to the same port.
-
-### Resolution
-
-Stopped manually starting additional server instances.
-
-Confirmed Railway already owned port 8080.
-
----
-
-## 4. Railway Health Endpoint Verification
-
-Initially, there was uncertainty whether Express routes were functioning.
-
-Health endpoint tested:
-
-```
-/api/health
-```
-
-Returned:
+Response
 
 ```json
 {
@@ -168,368 +231,159 @@ Returned:
 }
 ```
 
-### Result
+---
 
-Express routing confirmed operational.
+## Upload Document
+
+```http
+POST /api/upload
+```
+
+Uploads and indexes a document.
 
 ---
 
-## 5. Railway DNS Propagation
+## Query
 
-Initially:
-
-```
-DNS_PROBE_FINISHED_NXDOMAIN
+```http
+POST /api/query
 ```
 
-or
-
-```
-404 Not Found
-```
-
-appeared while testing the Railway URL.
-
-### Cause
-
-Public Railway domain had not fully propagated after regeneration.
-
-### Resolution
-
-Deleted and recreated the Railway public domain.
-
-Waited for DNS propagation.
-
-Eventually:
-
-```
-https://rag-qa-agent-production.up.railway.app/api/health
-```
-
-returned successfully.
+Returns a grounded answer using semantic retrieval.
 
 ---
 
-## 6. False Backend Failure
+# Local Development
 
-The backend appeared broken because:
+Clone the repository
 
-* browser returned 404
-* frontend returned API failures
-
-However:
-
-Railway logs showed:
-
-```
-Server running
+```bash
+git clone <repository-url>
 ```
 
-and
+Install dependencies
 
-```
-Health route triggered
-```
-
-Meaning:
-
-Backend had never actually failed.
-
-The failures originated elsewhere.
-
----
-
-## 7. Vercel API Routing
-
-The major issue.
-
-Frontend requests looked like:
-
-```
-fetch("/api/query")
+```bash
+npm install
 ```
 
-or
+Create
 
-```
-fetch("/api/documents")
-```
-
-When deployed on Vercel,
-
-those requests resolved to
-
-```
-https://vercel-domain/api/...
+```text
+.env
 ```
 
-instead of Railway.
+Example
 
-Vercel therefore returned
-
-```
-404
-```
-
-because it had no backend.
-
-### Resolution
-
-Frontend API base URL was configured to point to Railway.
-
-Instead of:
-
-```
-/api/query
+```env
+GEMINI_API_KEY=your_api_key
+PORT=8080
 ```
 
-the frontend now communicates with:
+Run development server
 
-```
-https://rag-qa-agent-production.up.railway.app/api/query
+```bash
+npm run dev
 ```
 
 ---
 
-## 8. Railway Console Limitations
+# Production Build
 
-Several debugging inconveniences were encountered.
+Build
 
-Examples:
-
-* no copy/paste support
-* limited shell commands
-* missing utilities like curl
-* manual typing required
-
-Alternative methods using Node's built-in fetch were used for verification.
-
----
-
-## 9. Verification of Upload Pipeline
-
-Confirmed working pipeline:
-
-```
-Document Upload
-↓
-
-Parser
-
-↓
-
-Chunker
-
-↓
-
-Gemini Embeddings
-
-↓
-
-Vector Storage
-
-↓
-
-Retrieval
+```bash
+npm run build
 ```
 
-Upload logs confirmed:
+Start
 
-```
-Chunks created
-
-Embeddings generated
-
-Stored successfully
-
-Loaded successfully
+```bash
+npm start
 ```
 
 ---
 
-## 10. End-to-End Retrieval Verification
+# Deployment
 
-Uploaded:
+Backend
 
-```
-wscience.txt
-```
+- Railway
 
-System reported:
+Frontend
 
-```
-indexed successfully
-```
+- Vercel
 
-Knowledge context displayed:
-
-```
-4 vectors
-```
-
-Queries produced grounded responses with citations.
-
-This verified:
-
-* retrieval
-* embedding generation
-* similarity search
-* Gemini generation
+The frontend communicates with the Railway backend through environment variables.
 
 ---
 
-# Root Cause Analysis
+# Performance
 
-There was **no single bug**.
+Current production features
 
-Instead, multiple independent issues appeared sequentially:
-
-1. DNS propagation
-2. Railway networking
-3. Health endpoint verification
-4. Port conflicts during manual testing
-5. Vercel API routing
-6. Frontend using incorrect backend URLs
-
-Each layer initially masked the next one.
+- Automatic document ingestion
+- Fast semantic retrieval
+- Grounded responses
+- Context citations
+- Low-latency inference
+- Hybrid vector retrieval
 
 ---
 
-# Final Working System
+# Future Roadmap
 
-Backend:
-
-✅ Railway
-
-Frontend:
-
-✅ React + Vite
-
-API:
-
-✅ Express
-
-Embeddings:
-
-✅ Gemini Embedding 2 Preview
-
-Generation:
-
-✅ Gemini 3.5 Flash
-
-Vector Store:
-
-✅ Operational
-
-Upload:
-
-✅ Working
-
-Retrieval:
-
-✅ Working
-
-Grounded Responses:
-
-✅ Working
-
-Health Endpoint:
-
-✅ Operational
-
-Production Deployment:
-
-✅ Successful
+- PDF support
+- DOCX support
+- Persistent vector database
+- User authentication
+- Workspace sharing
+- Team collaboration
+- Streaming AI responses
+- Conversation history
+- Usage analytics
+- API keys
+- Rate limiting
+- Subscription plans
+- Reranking
+- Multi-model support
+- Image document parsing
+- OCR support
+- Multi-language retrieval
 
 ---
 
 # Lessons Learned
 
-### Always verify each deployment layer independently.
+During deployment, several production challenges were addressed:
 
-Do not assume the backend is broken simply because the frontend fails.
+- Production build verification
+- Railway deployment configuration
+- Health endpoint validation
+- DNS propagation handling
+- Port conflict resolution
+- Frontend/backend routing separation
+- API base URL configuration
+- End-to-end production testing
 
----
-
-### Confirm build artifacts.
-
-Ensure production contains:
-
-```
-dist/server.cjs
-```
-
-before deployment.
+The project now runs successfully in production with a complete Retrieval-Augmented Generation workflow.
 
 ---
 
-### Verify health endpoints first.
+# Acknowledgements
 
-```
-/api/health
-```
+Built using
 
-should always be the first deployment test.
-
----
-
-### Read deployment logs.
-
-Startup logs often reveal whether the server is already functioning correctly.
+- React
+- Vite
+- Express
+- TypeScript
+- Google Gemini API
+- Railway
+- Vercel
 
 ---
 
-### Distinguish DNS issues from application issues.
+## License
 
-```
-DNS failure
-```
-
-is fundamentally different from
-
-```
-404
-```
-
-and
-
-```
-500
-```
-
----
-
-### Separate frontend and backend responsibilities.
-
-Frontend deployment problems should not automatically imply backend failures.
-
----
-
-### Test APIs directly.
-
-Always verify backend routes independently of the frontend.
-
----
-
-# Final Outcome
-
-The production RAG system is now fully operational.
-
-The application successfully:
-
-* accepts uploaded documents
-* parses document content
-* chunks text intelligently
-* generates Gemini embeddings
-* stores vectors
-* retrieves relevant chunks
-* grounds responses using retrieved context
-* generates answers using Gemini 3.5 Flash
-* serves the application through Railway
-* communicates correctly with the frontend
-
----
-
-# Concise Summary
-
-The deployment initially appeared to fail due to DNS propagation delays, port conflicts during manual testing, and frontend requests being routed to Vercel instead of the Railway backend. Systematic debugging confirmed that the backend had been functioning correctly throughout the process. After regenerating the Railway public domain, validating the health endpoint, and ensuring the frontend communicated with the Railway API, the entire RAG pipeline—from document upload and embedding generation to vector retrieval and grounded answer generation—worked successfully. The final production deployment is stable, with end-to-end functionality verified.
+This project is licensed under the MIT License.
