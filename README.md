@@ -384,6 +384,11 @@ Built using
 
 ---
 
+> Encountered and resolved 10 interconnected deployment 
+> issues including DNS propagation, Railway networking, 
+> and Vercel API routing. Full incident report in 
+> INCIDENT_REPORT.md
+
 ## License
 
 This project is licensed under the MIT License.
